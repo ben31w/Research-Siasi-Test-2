@@ -6,20 +6,20 @@ You are then to read in requests from a file. Then process those requests throug
 You should be creating a class for the nodes, links and requests.
 
 Pseudocode: (General idea outline of how things should run)
-Read input graph data(nodes, links, requests)
+1) Read input graph data(nodes, links, requests)
 
-Create objects using input data
+2) Create objects using input data
 
-Create graph of network using nodes and links
+3) Create graph of network using nodes and links
 
-Process requests one by one (Determine if request is possible)
-  a) Find traversable path from point a to b
-  b) Allocate resources from each node and link.
-  c) Map path through network
+4) Process requests one by one (Determine if request is possible)
+    a) Find traversable path from point a to b
+    b) Allocate resources from each node and link.
+    c) Map path through network
   
-Create output file showing in order what requests passed and failed.
+5) Create output file showing in order what requests passed and failed.
   
-FAILURE: Requests can fail because a node might not have enough resources, node/link might not have enough bandwidth. If a node runs out of resources it can still be used for traversal but CANNOT be used for mapping. 
+FAILURE: Requests can fail because a node might not have enough resources, node/link might not have enough bandwidth. If a node runs out of resources it can still be used for traversal but CANNOT be used for mapping. NOTE that the default bandwith for a request is 5 this is NOT given in the input file and should be considered.
 
 Node Class:
 The node class will have blank parameters. The NodeID, integer value indicating the identification number of the node. NodeResources, integer value indicating the current number of available resources the node has at any given moment. You will also have a parameter indicating whether a node is online or offline.
