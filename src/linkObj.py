@@ -1,7 +1,7 @@
 """
 Template for the link object class
 """
-
+from nodeObj import nodeObj
 
 class linkObj(nodeObj): #subclass of the node object
 
