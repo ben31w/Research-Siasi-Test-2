@@ -65,6 +65,37 @@ def get_links():
     return link_objects
 
 
+def get_valid_requests():
+    """
+    Read the requests input file and return a list of valid requests.
+    For a request to be valid, there must be:
+     1) a valid path between src and dest
+     2) src and dest nodes must have enough resources for the request's cost,
+        and the links between the nodes must have enough bandwidth.
+    """
+    valid_requests = []
+    file_path = "../data/RequestInputData_30.txt"
+    DEFAULT_BANDWIDTH = 5
+    with open(file_path, 'rt') as f:
+        reader = csv.reader(f, delimiter=';')
+        next(reader, None)
+        for line in reader:
+            request = requestObj(requestID=int(line[0]), src=int(line[1]), dest=int(line[2]),
+                                 resource_requirement=int(line[3]))
+            paths = list(nx.shortest_simple_paths(GRAPH, request.src, request.dest))
+            for path in paths:
+                # Find a valid path (src and dest nodes must have enough resources for the request's requirement).
+                # Then allocate resources from each node (and link eventually...)
+                if node_objects[request.src - 1].nodeResources - request.resource_requirement >= 0 \
+                        and node_objects[request.dest - 1].nodeResources - request.resource_requirement >= 0:
+                    node_objects[request.src - 1].nodeResources -= request.resource_requirement
+                    node_objects[request.dest - 1].nodeResources -= request.resource_requirement
+                    break  # break when we find a valid path
+            valid_requests.append(request)
+
+    return valid_requests
+
+
 if __name__ == '__main__':
     GRAPH = nx.Graph()  # Creates the graph
 
@@ -83,24 +114,7 @@ if __name__ == '__main__':
     # a) Find traversable path from point a to b
     # b) Allocate resources from each node and link.
     # c) Map path through network
-    valid_requests = []
-    file_path = "../data/RequestInputData_30.txt"
-    with open(file_path, 'rt') as f:
-        reader = csv.reader(f, delimiter=';')
-        next(reader, None)
-        DEFAULT_BANDWIDTH = 5
-        for line in reader:
-            request = requestObj(requestID=int(line[0]), src=int(line[1]), dest=int(line[2]), resource_requirement=int(line[3]))
-            paths = list(nx.shortest_simple_paths(GRAPH, request.src, request.dest))
-            for path in paths:
-                # Find a valid path (src and dest nodes must have enough resources for the request's requirement).
-                # Then allocate resources from each node (and link eventually...)
-                if node_objects[request.src-1].nodeResources - request.resource_requirement >= 0 \
-                        and node_objects[request.dest-1].nodeResources - request.resource_requirement >= 0:
-                    node_objects[request.src-1].nodeResources -= request.resource_requirement
-                    node_objects[request.dest-1].nodeResources -= request.resource_requirement
-                    break  # break when we find a valid path
-            valid_requests.append(request)
+    valid_requests = get_valid_requests()
 
 
     for request in valid_requests:
