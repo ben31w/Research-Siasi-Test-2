@@ -5,3 +5,6 @@ class requestObj:
         self.src = src
         self.dest = dest
         self.resource_requirement = resource_requirement
+
+    def __str__(self):
+        return f"{self.requestID};{self.src};{self.dest};{self.resource_requirement}"

@@ -83,6 +83,7 @@ if __name__ == '__main__':
     # a) Find traversable path from point a to b
     # b) Allocate resources from each node and link.
     # c) Map path through network
+    valid_requests = []
     file_path = "../data/RequestInputData_30.txt"
     with open(file_path, 'rt') as f:
         reader = csv.reader(f, delimiter=';')
@@ -90,8 +91,20 @@ if __name__ == '__main__':
         DEFAULT_BANDWIDTH = 5
         for line in reader:
             request = requestObj(requestID=int(line[0]), src=int(line[1]), dest=int(line[2]), resource_requirement=int(line[3]))
+            paths = list(nx.shortest_simple_paths(GRAPH, request.src, request.dest))
+            for path in paths:
+                # Find a valid path (src and dest nodes must have enough resources for the request's requirement).
+                # Then allocate resources from each node (and link eventually...)
+                if node_objects[request.src-1].nodeResources - request.resource_requirement >= 0 \
+                        and node_objects[request.dest-1].nodeResources - request.resource_requirement >= 0:
+                    node_objects[request.src-1].nodeResources -= request.resource_requirement
+                    node_objects[request.dest-1].nodeResources -= request.resource_requirement
+                    break  # break when we find a valid path
+            valid_requests.append(request)
 
 
-    paths = list(nx.shortest_simple_paths(GRAPH, 1, 8))
-    print(paths)
-
+    for request in valid_requests:
+        print(request)
+    print()
+    for node in node_objects:
+        print(node.nodeID, ":", node.nodeResources)
