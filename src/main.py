@@ -19,6 +19,7 @@ import matplotlib.pyplot as plt  # Create the graph
 
 from linkObj import linkObj
 from nodeObj import nodeObj
+from requestObj import requestObj
 
 
 def set_edges(link_list):
@@ -52,8 +53,8 @@ def get_nodes():
 def get_links():
     """Create link objects from input file."""
     link_objects = []
-    filePath = "../data/LinkInputData.csv"
-    with open(filePath, 'rt') as f:
+    file_path = "../data/LinkInputData.csv"
+    with open(file_path, 'rt') as f:
         reader = csv.reader(f, delimiter=';')
         next(reader, None)  # skip header line
         for line in reader:
@@ -62,6 +63,7 @@ def get_links():
             )
 
     return link_objects
+
 
 if __name__ == '__main__':
     GRAPH = nx.Graph()  # Creates the graph
@@ -81,4 +83,15 @@ if __name__ == '__main__':
     # a) Find traversable path from point a to b
     # b) Allocate resources from each node and link.
     # c) Map path through network
+    file_path = "../data/RequestInputData_30.txt"
+    with open(file_path, 'rt') as f:
+        reader = csv.reader(f, delimiter=';')
+        next(reader, None)
+        DEFAULT_BANDWIDTH = 5
+        for line in reader:
+            request = requestObj(requestID=int(line[0]), src=int(line[1]), dest=int(line[2]), resource_requirement=int(line[3]))
+
+
+    paths = list(nx.shortest_simple_paths(GRAPH, 1, 8))
+    print(paths)
 
