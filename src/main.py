@@ -36,9 +36,6 @@ def set_edges(link_list):
 if __name__ == '__main__':
     GRAPH = nx.Graph()  # Creates the graph
 
-    # edges = [[1, 2], [1, 4], [2, 3], [3, 5], [2, 6], [6, 3]]  # List of the links or edges between the graph
-    # nodes = [1, 2, 3, 4, 5, 6]  # List of the nodes or points on the graph
-
     nodeObjects = []
     linkObjects = []
 
@@ -47,14 +44,18 @@ if __name__ == '__main__':
         reader = csv.reader(f, delimiter=';')
         next(reader, None)  # skip header line
         for line in reader:
-            nodeObjects.append( nodeObj(nodeID=int(line[0]), nodeResources=int(line[1]), nodeStatus=False, nodeCost=int(line[2])) )
+            nodeObjects.append(
+                nodeObj(nodeID=int(line[0]), nodeResources=int(line[1]), nodeStatus=False, nodeCost=int(line[2]))
+            )
 
     filePath = "../data/LinkInputData.csv"
     with open(filePath, 'rt') as f:
         reader = csv.reader(f, delimiter=';')
         next(reader, None)  # skip header line
         for line in reader:
-            linkObjects.append( linkObj(linkID=int(line[0]), linkBW=int(line[1]), linkSrc=int(line[2]), linkDest=int(line[3])) )
+            linkObjects.append(
+                linkObj(linkID=int(line[0]), linkBW=int(line[1]), linkSrc=int(line[2]), linkDest=int(line[3]))
+            )
 
     edges = [[link.linkSrc, link.linkDest] for link in linkObjects]
     nodes = [node.nodeID for node in nodeObjects]
