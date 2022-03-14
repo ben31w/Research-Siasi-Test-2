@@ -33,33 +33,52 @@ def set_edges(link_list):
             visited_links.append(link)
 
 
-if __name__ == '__main__':
-    GRAPH = nx.Graph()  # Creates the graph
+def get_nodes():
+    """Create node objects from input file."""
+    node_objects = []
 
-    nodeObjects = []
-    linkObjects = []
-
-    filePath = "../data/NodeInputData.csv"
-    with open(filePath, 'rt') as f:
+    file_path = "../data/NodeInputData.csv"
+    with open(file_path, 'rt') as f:
         reader = csv.reader(f, delimiter=';')
         next(reader, None)  # skip header line
         for line in reader:
-            nodeObjects.append(
+            node_objects.append(
                 nodeObj(nodeID=int(line[0]), nodeResources=int(line[1]), nodeStatus=False, nodeCost=int(line[2]))
             )
 
+    return node_objects
+
+
+def get_links():
+    """Create link objects from input file."""
+    link_objects = []
     filePath = "../data/LinkInputData.csv"
     with open(filePath, 'rt') as f:
         reader = csv.reader(f, delimiter=';')
         next(reader, None)  # skip header line
         for line in reader:
-            linkObjects.append(
+            link_objects.append(
                 linkObj(linkID=int(line[0]), linkBW=int(line[1]), linkSrc=int(line[2]), linkDest=int(line[3]))
             )
 
-    edges = [[link.linkSrc, link.linkDest] for link in linkObjects]
-    nodes = [node.nodeID for node in nodeObjects]
-    GRAPH.add_edges_from(edges)
+    return link_objects
 
+if __name__ == '__main__':
+    GRAPH = nx.Graph()  # Creates the graph
+
+    # Create node and link objects by reading the input files.
+    node_objects = get_nodes()
+    link_objects = get_links()
+
+    # Create a graph from the objects (store nodes as a list of integers; edges as a list of node connections)
+    edges = [[link.linkSrc, link.linkDest] for link in link_objects]
+    nodes = [node.nodeID for node in node_objects]
+    GRAPH.add_edges_from(edges)
     nx.draw(GRAPH, with_labels=True, font_weight='bold')
     plt.show()  # Need this line to make sure the graph actually shows up
+
+    # Process requests one by one (Determine if request is possible)
+    # a) Find traversable path from point a to b
+    # b) Allocate resources from each node and link.
+    # c) Map path through network
+
