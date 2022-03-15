@@ -62,16 +62,16 @@ def get_links():
     return link_objects
 
 
-def get_links_from_path(path):
+def get_sub_paths(path):
     """
     Given a path from a src node to a dest node (e.g. [1,5,2],
     return a list of the links between them (e.g., [[1,5], [5,2]].
     """
-    links = []
+    sub_paths = []
     for i in range(len(path) - 1):
         link = [path[i], path[i+1]]
         links.append(link)
-    return links
+    return sub_paths
 
 
 def get_valid_requests(nodes, links):
@@ -125,33 +125,24 @@ def connect_nodes(src, dest, resource_cost):
     return False
 
 
-# def connect_nodes(src, dest, resource_cost, bandwidth_cost, links):
-#     """
-#     Search through the links and attempt to establish a connection between src and dest.
-#     There must be a link connecting src and dest, with enough bandwidth.
-#
-#     If such a link is found, a connection is establish by subtracting bandwidth
-#     from the link, and the method returns True.
-#
-#     If no link is found, return False.
-#
-#     :param src: a nodeObj where connection starts
-#     :param dest: a nodeObj where connection ends
-#     :param resource_cost: the cost of
-#     :param bandwidth_cost: the cost of this connection in bandwidth;
-#         deduct this amount from each link in the path (int)
-#     :param links: a list of linkObj objects, describing the connections between nodes.
-#     :return: True if a src-dest connection is found and established
-#     """
-#     if src.nodeResources
-#
-#     for link in links:
-#         if (link.linkSrc == src and link.linkDest == dest or \
-#                 link.linkSrc == dest and link.linkDest == src) and \
-#                 link.linkBW > bandwidth_cost:
-#             link.linkBW -= bandwidth_cost
-#             return True
-#     return False
+def allocate_bandwidth(path, bandwidth_cost, links):
+    """
+    Given a two-node path a list of links connecting nodes, allocate
+    bandwidth the links specified in the path.
+
+    :param path: a two-node path on the graph (e.g., [7, 5])
+    :param bandwidth_cost: (int) the bandwidth that must be allocated from the
+        link connecting the nodes
+    :param links: a list of the graph's linkObj objects
+    :return: True if the link has enough bandwidth to support this connection;
+        False otherwise
+    """
+    for link in links:
+        if link.linkSrc == path[0] and link.linkDest == path[1] or \
+                link.linkSrc == path[1] and link.linkDest == path[0] and \
+                link.linkBW >= bandwidth_cost:
+            return True
+    return False
 
 
 if __name__ == '__main__':
@@ -174,14 +165,13 @@ if __name__ == '__main__':
     # c) Map path through network
     valid_requests = get_valid_requests(node_objects, link_objects)
 
-
+    print("valid requests")
     for request in valid_requests:
         print(request)
-    print()
+    print("\nnodes")
     for node in node_objects:
         print(node.nodeID, ":", node.nodeResources)
-    print()
-    #connect_nodes(5,7,5,link_objects)
+    print("\nlinks")
     for link in link_objects:
         print(f"SRC: {link.linkSrc}, DEST: {link.linkDest}, BANDWIDTH: {link.linkBW}")
     print(edges)
