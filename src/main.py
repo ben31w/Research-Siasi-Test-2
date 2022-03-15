@@ -22,18 +22,6 @@ from nodeObj import nodeObj
 from requestObj import requestObj
 
 
-def set_edges(link_list):
-    visited_links = []
-
-    for link in link_list:
-        u = link[0]
-        v = link[1]
-        temp = [u, v]
-        if link not in visited_links:
-            edges.append(temp)
-            visited_links.append(link)
-
-
 def get_nodes():
     """Create node objects from input file."""
     node_objects = []
@@ -62,6 +50,19 @@ def get_links():
     return link_objects
 
 
+def get_requests():
+    """Create request objects from input file."""
+    requests = []
+    file_path = "../data/RequestInputData_30.txt"
+    with open(file_path, 'rt') as f:
+        reader = csv.reader(f, delimiter=';')
+        next(reader, None)
+        for line in reader:
+            requests.append( requestObj(requestID=int(line[0]), src=int(line[1]),
+                    dest=int(line[2]), resource_requirement=int(line[3])) )
+    return requests
+
+
 def get_sub_paths(path):
     """
     Given a path from a src node to a dest node (e.g. [1,5,2],
@@ -70,41 +71,44 @@ def get_sub_paths(path):
     sub_paths = []
     for i in range(len(path) - 1):
         link = [path[i], path[i+1]]
-        links.append(link)
+        sub_paths.append(link)
     return sub_paths
 
 
-def get_valid_requests(nodes, links):
+def filter_requests(requests, nodes, links, graph):
     """
-    Read the requests input file and return a list of valid requests.
+    Read a list of requests and filter out the invalid ones.
     For a request to be valid, there must be:
-     1) a valid path between src and dest
+     1) a valid path between the request's src and dest
      2) src and dest nodes must have enough resources for the request's cost,
         and the links between the nodes must have enough bandwidth.
 
-    :param nodes: list of nodeObj objects (so resources can be allocated)
-    :param links: list of linkObj objects (so bandwidth can be allocated)
+    :param requests: list of requestObj objects to filter
+    :param nodes: list of nodeObj objects (resources will be allocated)
+    :param links: list of linkObj objects (bandwidth will be allocated)
     :return: a list of valid requests
     """
     valid_requests = []
-    file_path = "../data/RequestInputData_30.txt"
-    DEFAULT_BANDWIDTH = 5
-    with open(file_path, 'rt') as f:
-        reader = csv.reader(f, delimiter=';')
-        next(reader, None)
-        for line in reader:
-            # Make a request from the data. Get a list of paths from the request's
-            # source to its destination. Then loop through the paths and
-            # establish the shortest possible connection.
-            request = requestObj(requestID=int(line[0]), src=int(line[1]), dest=int(line[2]),
-                                 resource_requirement=int(line[3]))
-            paths = list(nx.shortest_simple_paths(GRAPH, request.src, request.dest))
-            for path in paths:
-                successful_connection = connect_nodes( nodes[request.src - 1], nodes[request.dest - 1], request.resource_requirement )
-                if successful_connection:
-                    break  # break once a successful connection is established
-            valid_requests.append(request)
-
+    DEFAULT_BANDWIDTH_COST = 5
+    for request in requests:
+        valid_connection = True
+        paths = list(nx.shortest_simple_paths(graph, request.src, request.dest))
+        for path in paths:
+            sub_paths = get_sub_paths(path)
+            for sub_path in sub_paths:
+                enough_bandwidth = allocate_bandwidth(sub_path, DEFAULT_BANDWIDTH_COST, links)
+                if not enough_bandwidth:
+                    valid_connection = False
+                    break
+            if not valid_connection:
+                break
+            successful_connection = connect_nodes(nodes[request.src - 1], nodes[request.dest - 1],
+                    request.resource_requirement)
+            if successful_connection:
+                # break once a successful connection is established
+                # (no need to search other paths once this request is filled)
+                valid_requests.append(request)
+                break
     return valid_requests
 
 
@@ -163,15 +167,8 @@ if __name__ == '__main__':
     # a) Find traversable path from point a to b
     # b) Allocate resources from each node and link.
     # c) Map path through network
-    valid_requests = get_valid_requests(node_objects, link_objects)
-
-    print("valid requests")
-    for request in valid_requests:
+    requests = get_requests()
+    requests = filter_requests(requests, node_objects, link_objects, GRAPH)
+    for request in requests:
         print(request)
-    print("\nnodes")
-    for node in node_objects:
-        print(node.nodeID, ":", node.nodeResources)
-    print("\nlinks")
-    for link in link_objects:
-        print(f"SRC: {link.linkSrc}, DEST: {link.linkDest}, BANDWIDTH: {link.linkBW}")
-    print(edges)
+
