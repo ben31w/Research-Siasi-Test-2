@@ -149,6 +149,21 @@ def get_sub_paths(path):
     return sub_paths
 
 
+def write_output_file(requests, file_name):
+    """
+    Write requests to an output file!
+
+    :param requests: requestObj list to write
+    :param file_name: file to write to
+    :return: void, but file specified by file_name will be changed
+    """
+    with open(file_name, 'wt') as f:
+        writer = csv.writer(f)
+        writer.writerow(["requestID;source;destination;RequestResources"])
+        for request in requests:
+            writer.writerow([request])
+
+
 if __name__ == '__main__':
     GRAPH = nx.Graph()  # Creates the graph
 
@@ -163,12 +178,8 @@ if __name__ == '__main__':
     nx.draw(GRAPH, with_labels=True, font_weight='bold')
     plt.show()  # Need this line to make sure the graph actually shows up
 
-    # Process requests one by one (Determine if request is possible)
-    # a) Find traversable path from point a to b
-    # b) Allocate resources from each node and link.
-    # c) Map path through network
+    # Process requests, and write to output file.
     requests = get_requests()
     requests = filter_requests(requests, node_objects, link_objects, GRAPH)
-    for request in requests:
-        print(request)
-
+    output_file_name = "../output/RequestOutputData_30.txt"
+    write_output_file(requests, output_file_name)
