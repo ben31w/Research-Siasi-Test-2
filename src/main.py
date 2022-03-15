@@ -37,7 +37,6 @@ def set_edges(link_list):
 def get_nodes():
     """Create node objects from input file."""
     node_objects = []
-
     file_path = "../data/NodeInputData.csv"
     with open(file_path, 'rt') as f:
         reader = csv.reader(f, delimiter=';')
@@ -46,7 +45,6 @@ def get_nodes():
             node_objects.append(
                 nodeObj(nodeID=int(line[0]), nodeResources=int(line[1]), nodeStatus=False, nodeCost=int(line[2]))
             )
-
     return node_objects
 
 
@@ -61,8 +59,19 @@ def get_links():
             link_objects.append(
                 linkObj(linkID=int(line[0]), linkBW=int(line[1]), linkSrc=int(line[2]), linkDest=int(line[3]))
             )
-
     return link_objects
+
+
+def get_links_from_path(path):
+    """
+    Given a path from a src node to a dest node (e.g. [1,5,2],
+    return a list of the links between them (e.g., [[1,5], [5,2]].
+    """
+    links = []
+    for i in range(len(path) - 1):
+        link = [path[i], path[i+1]]
+        links.append(link)
+    return links
 
 
 def get_valid_requests():
@@ -72,6 +81,9 @@ def get_valid_requests():
      1) a valid path between src and dest
      2) src and dest nodes must have enough resources for the request's cost,
         and the links between the nodes must have enough bandwidth.
+
+    :param edges: a list of edges in the graph (e.g., [[7,5], [6,7], etc.]
+    :return: valid requests from input file
     """
     valid_requests = []
     file_path = "../data/RequestInputData_30.txt"
@@ -84,16 +96,47 @@ def get_valid_requests():
                                  resource_requirement=int(line[3]))
             paths = list(nx.shortest_simple_paths(GRAPH, request.src, request.dest))
             for path in paths:
-                # Find a valid path (src and dest nodes must have enough resources for the request's requirement).
-                # Then allocate resources from each node (and link eventually...)
-                if node_objects[request.src - 1].nodeResources - request.resource_requirement >= 0 \
-                        and node_objects[request.dest - 1].nodeResources - request.resource_requirement >= 0:
-                    node_objects[request.src - 1].nodeResources -= request.resource_requirement
-                    node_objects[request.dest - 1].nodeResources -= request.resource_requirement
+                # Find a valid path.
+                # First check src and dest nodes, and allocate resources.
+                source = node_objects[request.src - 1]
+                destination = node_objects[request.dest - 1]
+                cost = request.resource_requirement
+                if source.nodeResources - cost >= 0 and destination.nodeResources - cost >= 0:
+                    source.nodeResources -= cost
+                    destination.nodeResources -= cost
+
+                    # Next check the links between src and dest, and allocate bandwidth.
+                    links_between_src_dest = get_links_from_path(path)
+
                     break  # break when we find a valid path
             valid_requests.append(request)
 
     return valid_requests
+
+
+def connect_nodes(src, dest, bandwidth_cost, links):
+    """
+    Search through the links and attempt to establish a connection between src and dest.
+    There must be a link connecting src and dest, with enough bandwidth.
+
+    If such a link is found, a connection is establish by subtracting bandwidth
+    from the link, and the method returns True.
+
+    If no link is found, return False.
+
+    :param src: a node ID (int)
+    :param dest: a node ID (int)
+    :param bandwidth_cost: the cost of this connection (int)
+    :param links: a list of linkObj objects.
+    :return: True if a src-dest connection is found and established
+    """
+    for link in links:
+        if (link.linkSrc == src and link.linkDest == dest or \
+                link.linkSrc == dest and link.linkDest == src) and \
+                link.linkBW > bandwidth_cost:
+            link.linkBW -= bandwidth_cost
+            return True
+    return False
 
 
 if __name__ == '__main__':
@@ -117,8 +160,13 @@ if __name__ == '__main__':
     valid_requests = get_valid_requests()
 
 
-    for request in valid_requests:
-        print(request)
-    print()
-    for node in node_objects:
-        print(node.nodeID, ":", node.nodeResources)
+    # for request in valid_requests:
+    #     print(request)
+    # print()
+    # for node in node_objects:
+    #     print(node.nodeID, ":", node.nodeResources)
+    # print()
+    connect_nodes(5,7,5,link_objects)
+    for link in link_objects:
+        print(f"SRC: {link.linkSrc}, DEST: {link.linkDest}, BANDWIDTH: {link.linkBW}")
+    print(edges)
